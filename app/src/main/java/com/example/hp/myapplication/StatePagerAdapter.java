@@ -67,7 +67,8 @@ public class StatePagerAdapter extends FragmentStatePagerAdapter{
     public void removeAllFragments(ViewPager pager){
 
         pager.setAdapter (null);
-        fragments.removeAll(fragments);
+        //fragments.removeAll(fragments);
+        fragments.clear();
         pager.setAdapter (this);
 
     }
