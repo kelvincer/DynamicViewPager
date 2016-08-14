@@ -48,7 +48,7 @@ public class MainPagerAdapter extends FragmentPagerAdapter {
     public Object instantiateItem (ViewGroup container, int position)
     {
         Fragment v = fragments.get (position);
-        container.addView (v);
+        container.addFragment (v);
 
         return v;
     }

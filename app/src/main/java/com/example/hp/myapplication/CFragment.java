@@ -14,7 +14,7 @@ import android.widget.Button;
  */
 public class CFragment extends Fragment {
 
-    FragmenPagerAdapter adapter;
+    StatePagerAdapter adapter;
     ViewPager pager;
 
 
@@ -24,24 +24,10 @@ public class CFragment extends Fragment {
 
         View v = inflater.inflate(R.layout.view_3,container, false );
 
-        Button b = (Button) v.findViewById(R.id.button);
-
-        b.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-                DFragment d = new DFragment();
-                d.setAdapter(adapter);
-                d.setViewPager(pager);
-                adapter.addView(d);
-                adapter.notifyDataSetChanged();
-            }
-        });
-
         return v;
     }
 
-    public void setAdapter(FragmenPagerAdapter adapter){
+    public void setAdapter(StatePagerAdapter adapter){
         this.adapter = adapter;
     }
 
