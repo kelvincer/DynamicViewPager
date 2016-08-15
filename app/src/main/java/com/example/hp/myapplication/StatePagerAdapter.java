@@ -16,7 +16,7 @@ public class StatePagerAdapter extends FragmentStatePagerAdapter{
 
     private static final String TAG ="StatePagerAdapter";
 
-    private ArrayList<Fragment> fragments = new ArrayList<>();
+    public ArrayList<Fragment> fragments = new ArrayList<>();
 
     public StatePagerAdapter(FragmentManager fm, ArrayList<Fragment> fragments){
         super(fm);

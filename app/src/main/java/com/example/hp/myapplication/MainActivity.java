@@ -9,14 +9,17 @@ import android.view.View;
 import android.widget.LinearLayout;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = "MainActivity";
     public ViewPager pager;
     public StatePagerAdapter adapter;
-    int adPosition = 3;
+    int adPosition = 2;
     boolean onNotShown = true;
+    int counter  = 1;
+    ArrayList<Fragment> fragments;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -25,9 +28,10 @@ public class MainActivity extends AppCompatActivity {
 
         ArrayList<View> v = new ArrayList<>();
 
-        ArrayList<Fragment> fragments = new ArrayList<>();
+        fragments = new ArrayList<>();
         fragments.add(new AFragment());
         fragments.add(new BFragment());
+        fragments.add(new CFragment());
         fragments.add(new CFragment());
 
         DFragment d = new DFragment();
@@ -36,9 +40,6 @@ public class MainActivity extends AppCompatActivity {
         adapter = new StatePagerAdapter(getSupportFragmentManager(), fragments);
         pager = (ViewPager) findViewById(R.id.view_pager);
         pager.setAdapter(adapter);
-
-        if(adPosition == 0)
-            onNotShown = false;
 
         pager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
 
@@ -50,18 +51,64 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onPageSelected(int position) {
 
-                Log.i(TAG, "size " + adapter.getCount() + " index " + position);
+                int i = pager.getCurrentItem();
 
-                Fragment f = adapter.getFragment(position);
+                Log.i(TAG, "size " + adapter.getCount() + " position " + position + " counter " + counter);
 
-                if(f instanceof DFragment)
+                Fragment f = null;
+                if(position + 1 < adapter.getCount())
+                    f = adapter.getFragment(position);
+
+                if( f != null && f instanceof DFragment && onNotShown)
+                {
+                    Log.i(TAG, "dfragment");
                     onNotShown = false;
+                    adapter.addFragment(new DFragment(), position - 1);
+                    adapter.notifyDataSetChanged();
+                    //pager.setCurrentItem(position + 1, false);
+                }
+
+
+                /*if(adPosition > 1 && adPosition == counter){
+
+                    adPosition = -1;
+
+                    adapter.addFragment(new DFragment(), position);
+                    adapter.notifyDataSetChanged();
+                    if(position + 2 < adapter.getCount())
+                        adapter.addFragment(new DFragment(), position + 2);
+                    //adapter.removeFragment(pager, adPosition - 2);
+                    adapter.notifyDataSetChanged();
+                    pager.setCurrentItem(position + 1, false);
+
+
+                    /*adapter.removeAllFragments(pager);
+                    fragments.clear();
+                    fragments.add(new AFragment());
+                    fragments.add(new CFragment());
+                    fragments.add(new CFragment());
+                    fragments.add(new CFragment());
+
+                    adapter = new StatePagerAdapter(getSupportFragmentManager(), fragments);
+                    pager.setAdapter(adapter);
+                    adapter.notifyDataSetChanged();
+                    pager.setCurrentItem(i);
+                }*/
+
+                counter++;
+
+
+                /*if(f instanceof DFragment)
+                {
+                    onNotShown = false;
+                    counter--;
+                }
 
                 //if(!onNotShown && (position == adPosition + 1 || position == adPosition - 1)) {
                 if(!onNotShown && !(f instanceof DFragment)) {
 
                     onNotShown = true;
-                    int i = pager.getCurrentItem();
+
                     adapter.removeFragment(pager, adPosition);
                     adapter.notifyDataSetChanged();
                     if (position == adPosition + 1)
@@ -70,7 +117,9 @@ public class MainActivity extends AppCompatActivity {
                         pager.setCurrentItem(i);
 
                     Log.d(TAG, "leaving position");
-                }
+                }*/
+
+                Log.i(TAG, "counter " + counter);
             }
 
             @Override
