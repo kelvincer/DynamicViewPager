@@ -5,10 +5,9 @@ import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.View;
-import android.widget.LinearLayout;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
@@ -18,15 +17,16 @@ public class MainActivity extends AppCompatActivity {
     public StatePagerAdapter adapter;
     int adPosition = 2;
     boolean onNotShown = true;
-    int counter  = 1;
+    int counter = 1;
     ArrayList<Fragment> fragments;
+    List<Integer> indexAds;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        ArrayList<View> v = new ArrayList<>();
+        indexAds = new ArrayList<>();
 
         fragments = new ArrayList<>();
         fragments.add(new AFragment());
@@ -34,92 +34,142 @@ public class MainActivity extends AppCompatActivity {
         fragments.add(new CFragment());
         fragments.add(new CFragment());
 
-        DFragment d = new DFragment();
-        fragments.add(adPosition, d);
+        final DFragment d = new DFragment();
+        if (adPosition == 1)
+            fragments.add(adPosition - 1, d);
+
+        if (adPosition == 2)
+            fragments.add(adPosition - 1, d);
 
         adapter = new StatePagerAdapter(getSupportFragmentManager(), fragments);
         pager = (ViewPager) findViewById(R.id.view_pager);
         pager.setAdapter(adapter);
 
+
         pager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+
+            float tempPositionOffset = 0;
+            boolean onScrollingLeft = false;
+            int currentPosition = 0;
 
             @Override
             public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
 
+
+                if (position == 0) {
+                    if (tempPositionOffset < positionOffset) {
+                        // Log.d("eric", "scrolling left ...");
+                        onScrollingLeft = true;
+                    } else {
+                        // Log.d("eric", "scrolling right ...");
+                        onScrollingLeft = false;
+                    }
+
+                    tempPositionOffset = positionOffset;
+
+                    // Log.d("eric", "position " + position + "; " + " positionOffset " + positionOffset + "; " + " positionOffsetPixels " + positionOffsetPixels + ";");
+                }
             }
 
             @Override
             public void onPageSelected(int position) {
 
-                int i = pager.getCurrentItem();
-
                 Log.i(TAG, "size " + adapter.getCount() + " position " + position + " counter " + counter);
 
-                Fragment f = null;
-                if(position + 1 < adapter.getCount())
-                    f = adapter.getFragment(position);
+                if (onScrollingLeft) {
+                    if (counter == adPosition - 2) {
 
-                if( f != null && f instanceof DFragment && onNotShown)
-                {
-                    Log.i(TAG, "dfragment");
-                    onNotShown = false;
-                    adapter.addFragment(new DFragment(), position - 1);
-                    adapter.notifyDataSetChanged();
-                    //pager.setCurrentItem(position + 1, false);
+                        Log.i(TAG, "enter left");
+
+                        adPosition = 0;
+                        if (position > 0) {
+                            int i = adapter.addFragment(new DFragment(), position);
+                            indexAds.add(i);
+                        }
+                        //if(counter < adapter.getCount() - 1)
+                        if (position + 1 < adapter.getCount()) {
+                            int i = adapter.addFragment(new DFragment(), position + 2);
+                            indexAds.add(i);
+                        }
+                        pager.setCurrentItem(position + 1, false);
+
+                        return;
+                    }
+                } else {
+
+                    Log.i(TAG, "counter " + counter);
+
+                    if (counter == adPosition - 2) {
+
+                        Log.i(TAG, "enter right");
+                        adPosition = 0;
+                        if (position > 1) {
+                            int i = adapter.addFragment(new DFragment(), position - 1);
+                            indexAds.add(i);
+                        }
+                        if (position < adapter.getCount()) {
+                            int i = adapter.addFragment(new DFragment(), position + 1);
+                            indexAds.add(i);
+                        }
+                        pager.setCurrentItem(position, false);
+
+                        return;
+
+                    }
                 }
 
 
-                /*if(adPosition > 1 && adPosition == counter){
 
-                    adPosition = -1;
+                if (position < adapter.getCount() - 1) {
+                    if (onNotShown &&!(adapter.getFragment(position) instanceof DFragment) && (adapter.getFragment(position + 1) instanceof DFragment)) {
+                        onNotShown = false;
+                        currentPosition = position + 1;
 
-                    adapter.addFragment(new DFragment(), position);
-                    adapter.notifyDataSetChanged();
-                    if(position + 2 < adapter.getCount())
-                        adapter.addFragment(new DFragment(), position + 2);
-                    //adapter.removeFragment(pager, adPosition - 2);
-                    adapter.notifyDataSetChanged();
-                    pager.setCurrentItem(position + 1, false);
+                        Log.i(TAG, "current position " + currentPosition);
+                    }
+                }
+
+                if ( position + 3 == currentPosition){
+
+                    currentPosition = 0;
+
+                    Collections.reverse(indexAds);
+
+                    for (int i : indexAds) {
+
+                        adapter.removeFragment(pager, i);
+                    }
+                    Log.i(TAG, "remove fragment");
+
+                    indexAds.clear();
+                    pager.setCurrentItem(position, false);
 
 
-                    /*adapter.removeAllFragments(pager);
-                    fragments.clear();
-                    fragments.add(new AFragment());
-                    fragments.add(new CFragment());
-                    fragments.add(new CFragment());
-                    fragments.add(new CFragment());
 
-                    adapter = new StatePagerAdapter(getSupportFragmentManager(), fragments);
-                    pager.setAdapter(adapter);
-                    adapter.notifyDataSetChanged();
-                    pager.setCurrentItem(i);
-                }*/
 
+                    /*if (currentPosition == position + 2 || currentPosition == position) {
+                        Fragment f = null;
+                        if (position < adapter.getCount() - 1)
+                            f = adapter.getFragment(position + 1);
+                        if (f != null && !(f instanceof DFragment) && indexAds.size() > 0) {
+
+                            Collections.reverse(indexAds);
+
+                            for (int i : indexAds) {
+
+                                adapter.removeFragment(pager, i);
+                            }
+                            Log.i(TAG, "remove fragment");
+
+                            indexAds.clear();
+                            pager.setCurrentItem(position - 1, false);
+                        }
+
+                    }*/
+                }
                 counter++;
 
-
-                /*if(f instanceof DFragment)
-                {
-                    onNotShown = false;
-                    counter--;
-                }
-
-                //if(!onNotShown && (position == adPosition + 1 || position == adPosition - 1)) {
-                if(!onNotShown && !(f instanceof DFragment)) {
-
-                    onNotShown = true;
-
-                    adapter.removeFragment(pager, adPosition);
-                    adapter.notifyDataSetChanged();
-                    if (position == adPosition + 1)
-                        pager.setCurrentItem(i - 1);
-                    else if (position == adPosition - 1)
-                        pager.setCurrentItem(i);
-
-                    Log.d(TAG, "leaving position");
-                }*/
-
-                Log.i(TAG, "counter " + counter);
+                //Log.i(TAG, "counter " + counter);
             }
 
             @Override

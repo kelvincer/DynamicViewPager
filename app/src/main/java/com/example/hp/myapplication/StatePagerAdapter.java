@@ -2,6 +2,7 @@ package com.example.hp.myapplication;
 
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
@@ -12,7 +13,7 @@ import java.util.ArrayList;
 /**
  * Created by HP on 12/08/2016.
  */
-public class StatePagerAdapter extends FragmentStatePagerAdapter{
+public class StatePagerAdapter extends FragmentStatePagerAdapter {
 
     private static final String TAG ="StatePagerAdapter";
 
@@ -41,6 +42,7 @@ public class StatePagerAdapter extends FragmentStatePagerAdapter{
     public int addFragment(Fragment v, int position)
     {
         fragments.add (position, v);
+        notifyDataSetChanged();
         return position;
     }
 
@@ -52,9 +54,10 @@ public class StatePagerAdapter extends FragmentStatePagerAdapter{
     public int removeFragment (ViewPager pager, int position)
     {
 
-        //pager.setAdapter (null);
+        pager.setAdapter (null);
         fragments.remove (position);
         pager.setAdapter (this);
+        notifyDataSetChanged();
 
         return position;
     }
