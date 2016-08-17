@@ -15,7 +15,7 @@ public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
     public ViewPager pager;
     public StatePagerAdapter adapter;
-    int adPosition = 4;
+    int adPosition = 8;
     boolean onScreen = false;
     int counter = 1;
     ArrayList<Fragment> fragments;
@@ -52,35 +52,46 @@ public class MainActivity extends AppCompatActivity {
         pager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
 
             float tempPositionOffset = 0;
-            boolean onScrollingLeft = false;
+            boolean onScrollingRight = false;
             int currentPosition = 0;
-            boolean onload = true;
+            private boolean scrollStarted, checkDirection;
+            private static final float thresholdOffset = 0.5f;
 
             @Override
             public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
 
 
-                if (position == 0) {
-                    if (tempPositionOffset < positionOffset) {
-                        // Log.d(TAG, "scrolling left ...");
-                        onScrollingLeft = true;
+                    /*if (tempPositionOffset < positionOffset) {
+                         Log.d(TAG, "scrolling left ...");
+                        onScrollingRight = true;
                     } else {
-                        // Log.d(TAG, "scrolling right ...");
-                        onScrollingLeft = false;
+                         Log.d(TAG, "scrolling right ...");
+                        onScrollingRight = false;
                     }
 
-                    tempPositionOffset = positionOffset;
+                    tempPositionOffset = positionOffset;*/
 
-                    // Log.d("eric", "position " + position + "; " + " positionOffset " + positionOffset + "; " + " positionOffsetPixels " + positionOffsetPixels + ";");
+                // Log.d("eric", "position " + position + "; " + " positionOffset " + positionOffset + "; " + " positionOffsetPixels " + positionOffsetPixels + ";");
+
+                if (checkDirection) {
+                    if (thresholdOffset > positionOffset) {
+                        Log.i(TAG, "going left");
+                        onScrollingRight = true;
+                    } else {
+                        Log.i(TAG, "going right");
+                        onScrollingRight = false;
+                    }
+                    checkDirection = false;
                 }
             }
 
             @Override
             public void onPageSelected(int position) {
 
+
                 Log.i(TAG, "size " + adapter.getCount() + " position " + position + " counter " + counter);
 
-                if (onScrollingLeft) {
+                if (onScrollingRight) {
                     if (counter == adPosition - 2) {
 
                         Log.i(TAG, "enter left");
@@ -105,18 +116,23 @@ public class MainActivity extends AppCompatActivity {
 
                         Log.i(TAG, "enter right");
                         adPosition = 0;
-                        if (position > 1) {
-                            int i = adapter.addFragment(new DFragment(), position - 1);
+                        if (position >= 1) {
+                            int i = adapter.addFragment(new DFragment(), position);
                             indexAds.add(i);
+                        }else if(position == 0){
+
+                            adapter.addFragment(new DFragment(), position + 1);
+                            pager.setCurrentItem(position, false);
+                            return;
                         }
+
                         if (position < adapter.getCount()) {
-                            int i = adapter.addFragment(new DFragment(), position + 1);
+                            int i = adapter.addFragment(new DFragment(), position + 2);
                             indexAds.add(i);
                         }
-                        pager.setCurrentItem(position, false);
+                        pager.setCurrentItem(position + 1, false);
 
                         return;
-
                     }
                 }
 
@@ -125,14 +141,15 @@ public class MainActivity extends AppCompatActivity {
                     adPosition = 0;
                 }
 
-
-                if (adapter.getFragment(position) instanceof DFragment)
+                if (adapter.getFragment(position) instanceof DFragment) {
                     onScreen = true;
+                    Log.i(TAG, "remove");
+                }
 
-                if (position < adapter.getCount() - 1) {
+                if (position <= adapter.getCount() - 1) {
                     if (onScreen && !(adapter.getFragment(position) instanceof DFragment)
-                            && ((adapter.getFragment(position + 1) instanceof DFragment)
-                            || (adapter.getFragment(position - 1) instanceof DFragment))) {
+                            && (( (adapter.getFragment(position - 1) instanceof DFragment)
+                            || adapter.getFragment(position + 1) instanceof DFragment))) {
 
                         onScreen = false;
                         currentPosition = position;
@@ -147,19 +164,32 @@ public class MainActivity extends AppCompatActivity {
                         }
                         Log.i(TAG, "remove fragment");
 
-                        if (onScrollingLeft) {
-                            if(indexAds.size() == 1)
-                                pager.setCurrentItem(position - 1, false);
-                            else if (indexAds.size() == 2)
-                                pager.setCurrentItem(position - 2, false);
-                            Log.i(TAG, "left");
-                        }else{
+                        Collections.reverse(indexAds);
 
-                            Log.i(TAG, "right");
-                            if(indexAds.size() == 2)
-                                pager.setCurrentItem(position - 1, false);
-                            else if(indexAds.size() == 1)
-                                pager.setCurrentItem(position - 1, false);
+                        if (indexAds.size() == 2) {
+
+                            if (indexAds.get(0) > position && indexAds.get(1) > position) {
+                                pager.setCurrentItem(position);
+                                Log.i(TAG, "remove 1");
+                            }
+                            else if (indexAds.get(0) < position && indexAds.get(1) > position) {
+                                pager.setCurrentItem(position - 1);
+                                Log.i(TAG, "remove 2");
+                            }
+                            else if (indexAds.get(0) < position && indexAds.get(1) < position) {
+                                pager.setCurrentItem(position - 2);
+                                Log.i(TAG, "remove 3");
+                            }
+                        }else if(indexAds.size() == 1){
+
+                            if(indexAds.get(0) <= position) {
+                                pager.setCurrentItem(position - 1);
+                                Log.i(TAG, "remove 4");
+                            }
+                            else{
+                                pager.setCurrentItem(position);
+                                Log.i(TAG, "remove 5");
+                            }
                         }
 
                         indexAds.clear();
@@ -181,17 +211,21 @@ public class MainActivity extends AppCompatActivity {
                     indexAds.clear();
                     pager.setCurrentItem(position, false);
                 }*/
-                    counter++;
+                counter++;
 
-                    //Log.i(TAG, "counter " + counter);
-                }
-
-                @Override
-                public void onPageScrollStateChanged ( int state){
-
-                }
+                //Log.i(TAG, "counter " + counter);
             }
 
-            );
-        }
+            @Override
+            public void onPageScrollStateChanged(int state) {
+
+                if (!scrollStarted && state == ViewPager.SCROLL_STATE_DRAGGING) {
+                    scrollStarted = true;
+                    checkDirection = true;
+                } else {
+                    scrollStarted = false;
+                }
+            }
+        });
     }
+}
